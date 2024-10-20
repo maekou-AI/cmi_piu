@@ -1,0 +1,14 @@
+*
+!*/
+!*.ipynb
+!*.py
+!*.txt
+!*.md
+!*.pdf
+!*.gitignore
+!*.yaml
+tmp/*
+temp/*
+working/*
+!.devcontainer/*
+!.vscode/*

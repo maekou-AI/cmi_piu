@@ -1,0 +1,27 @@
+{
+    // dev container name
+    "name": "kaggle-docker",
+    // docker-compose.yml
+    "dockerComposeFile": "docker-compose.yml",
+    // service name of docker-compose.yml
+    "service": "playground",
+    // workspace
+    "workspaceFolder": "/kaggle",
+    // user
+    "remoteUser": "root",
+    // setting
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "EditorConfig.EditorConfig",
+                // Python用
+                "ms-python.python",
+                "ms-toolsai.jupyter",
+                "njpwerner.autodocstring",
+                "ms-python.black-formatter",
+                "mhutchie.git-graph",
+                "redhat.vscode-yaml"
+            ]
+        }
+    }
+}
