@@ -1,0 +1,19 @@
+services:
+    kaggle:
+        image: gcr.io/kaggle-gpu-images/python
+        container_name: kaggle
+        runtime: nvidia
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - capabilities: [gpu]
+        ports:
+            - "8888:8888"
+        volumes:
+            - /home/maekou/kaggle/:/work
+            - /home/maekou/.kaggle/:/home/maekou/.kaggle
+            - /home/maekou/.ssh:/root/.ssh:ro
+        command: /bin/bash
+        stdin_open: true
+        tty: true
