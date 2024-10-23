@@ -1,6 +1,6 @@
 # Import
 import sys
-sys.path.append("/kaggle/src")
+sys.path.append("/kaggle/src")  # Change on kaggle notebook
 
 from pathlib import Path
 
@@ -54,7 +54,7 @@ model_params = {
     "num_threads": 4,
 }
 
-save_dir = Path(OUTPUT_DIR) / Path(__file__).stem
+save_dir = Path(OUTPUT_DIR) / Path(__file__).stem  # Change on kaggle notebook
 save_dir.mkdir(exist_ok=True, parents=True)
 
 run_kfold(
