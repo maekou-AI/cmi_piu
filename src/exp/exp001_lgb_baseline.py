@@ -34,6 +34,7 @@ features = pl.concat([
 
 # Preprocessing
 cat_cols = features.select(pl.col(pl.Utf8)).columns
+cat_cols.remove("id")
 le = LabelEncoder()
 for col in cat_cols:
     encoded = le.fit_transform(features[col].to_numpy())
@@ -53,9 +54,17 @@ model_params = {
     "num_threads": 4,
 }
 
-save_dir = OUTPUT_DIR / Path(__file__).stem
+save_dir = Path(OUTPUT_DIR) / Path(__file__).stem
 save_dir.mkdir(exist_ok=True, parents=True)
 
 run_kfold(
-    
+    features=features.drop("id").to_pandas(),
+    trn_targets=trn_df.filter(pl.col("id").is_in(trn_id))["sii"].to_pandas(),
+    categorical_features=cat_cols,
+    n_splits=10,
+    save_dir=save_dir,
+    model_params=model_params,
+    weights=None,
+    trn_id=trn_id,
+    tst_id=tst_id,
 )
