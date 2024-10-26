@@ -8,16 +8,18 @@ import polars as pl
 from sklearn.preprocessing import LabelEncoder
 
 from common.constant import TRAIN_CSV_PATH, TEST_CSV_PATH, OUTPUT_DIR
-from preprocess.table import label_edit
+from preprocess.table import remove_outlier
 from run.lgb001 import run_kfold
 
 # Data
 trn_df = pl.read_csv(TRAIN_CSV_PATH)
-trn_df = label_edit(trn_df)
 tst_df = pl.read_csv(TEST_CSV_PATH)
 
 base_cols = [col for col in trn_df.columns if col in tst_df.columns]
 df = pl.concat([trn_df[base_cols], tst_df])
+
+# Preprocessing
+df = remove_outlier(df)
 
 # Feature engineering
 features = pl.concat(
@@ -34,7 +36,7 @@ features = pl.concat([
     features.slice(len(trn_df)).filter(pl.col("id").is_in(tst_id))
 ])
 
-# Preprocessing
+# Target encoding
 cat_cols = features.select(pl.col(pl.Utf8)).columns
 cat_cols.remove("id")
 le = LabelEncoder()
