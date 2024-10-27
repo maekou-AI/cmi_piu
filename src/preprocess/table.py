@@ -39,11 +39,44 @@ def label_edit(trn_df):
     return update
 
 
-def missing(df):
-    # Physical-BMI -> BIA-BIA_BMI
-    # Physical-Weight -> BIA-BIA_FFM + BIA-BIA_Fat
-    # Physical-Height -> √0.45 * Weight / BMI
-    pass
+def fill_missing(df):
+    update = (
+        df
+        # Physical-BMI
+        .with_columns(
+            pl.when(pl.col("Physical-BMI") == 0)
+            .then(None)
+            .otherwise(pl.col("Physical-BMI"))
+            .alias("Physical-BMI")
+        )
+        .with_columns(
+            pl.when(pl.col("Physical-BMI").is_null())
+            .then(pl.col("BIA-BIA_BMI"))
+            .otherwise(pl.col("Physical-BMI"))
+            .alias("Physical-BMI")
+        )
+        # Physical-Weight
+        .with_columns(
+            pl.when(pl.col("Physical-Weight") == 0)
+            .then(None)
+            .otherwise(pl.col("Physical-Weight"))
+            .alias("Physical-Weight")
+        )
+        .with_columns(
+            pl.when(pl.col("Physical-Weight").is_null())
+            .then(pl.col("BIA-BIA_FFM") + pl.col("BIA-BIA_Fat"))
+            .otherwise(pl.col("Physical-Weight"))
+            .alias("Physical-Weight")
+        )
+        # Physical-Height
+        .with_columns(
+            pl.when(pl.col("Physical-Height").is_null())
+            .then((pl.col("Physical-Weight") * 0.45 / pl.col("Physical-BMI")).sqrt() * 100 / 2.54)
+            .otherwise(pl.col("Physical-Height"))
+            .alias("Physical-Height")   
+        )
+    )
+    return update
 
 
 def remove_outlier(df):
