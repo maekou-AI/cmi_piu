@@ -92,6 +92,8 @@ def run_kfold(
     boosters, eval_result, qwks, oof_preds = train_kfold(
         trn_features, trn_targets, categorical_features, n_splits, model_params, weights
     )
+    pd.DataFrame(data={"id": trn_id, "sii": oof_preds}).to_csv(save_dir / "oof_prediction_raw.csv", index=False)
+    
     # save_loss
     loss = pd.DataFrame(
         data={
@@ -100,6 +102,7 @@ def run_kfold(
         }
     )
     loss.to_csv(save_dir / "log_metric.csv", index=False)
+
     # kappa_optimizer
     kappa_optimizer = minimize(
         evaluate_predictions,
@@ -107,23 +110,19 @@ def run_kfold(
         args=(trn_targets.to_numpy(), oof_preds),
         method="Nelder-Mead",
     )
+
     # oof_preds
     oof_preds = threshold_rounder(oof_preds, kappa_optimizer.x)
     qwk_optimized = cohen_kappa_score(trn_targets.to_numpy(), oof_preds, weights="quadratic")
     print(f"Optimized Kappa: {qwk_optimized:.4f}")
-    oof_preds = pd.DataFrame(
-        data={"id": trn_id, "sii": oof_preds}
-    )
-    oof_preds.to_csv(save_dir / "oof_prediction.csv", index=False)
+    pd.DataFrame(data={"id": trn_id, "sii": oof_preds}).to_csv(save_dir / "oof_prediction.csv", index=False)
     (save_dir / "score.txt").write_text(f"Kappa: {str(np.mean(qwks))}, Optimized Kappa: {str(qwk_optimized)}")
+
     # tst_preds
     tst_preds = np.zeros(len(tst_features))
     for i, booster in enumerate(boosters):
         tst_preds += booster.predict(tst_features) / n_splits
         booster.save_model(str(save_dir / f"booster.{i}.txt"))
     tst_preds = threshold_rounder(tst_preds, kappa_optimizer.x)
-    tst_preds = pd.DataFrame(
-        data={"id": tst_id, "sii": tst_preds}
-    )
-    tst_preds.to_csv("/kaggle/working/submission.csv", index=False)
+    pd.DataFrame(data={"id": tst_id, "sii": tst_preds}).to_csv("/kaggle/working/submission.csv", index=False)
     
