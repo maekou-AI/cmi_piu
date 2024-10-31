@@ -1,6 +1,37 @@
 import polars as pl
 
 
+def interaction(df):
+    features = (
+        df
+        .with_columns(
+            (pl.col("Basic_Demos-Age") * pl.col("Physical-BMI")).alias("Age_BMI"),
+            (pl.col("Basic_Demos-Age") * pl.col("PreInt_EduHx-computerinternet_hoursday")).alias("Age_internet_hoursday"),
+            (pl.col("Physical-BMI") * pl.col("PreInt_EduHx-computerinternet_hoursday")).alias("BMI_internet_hoursday"),
+        )
+        .with_columns(
+            (pl.col("BIA-BIA_Fat") / pl.col("BIA-BIA_BMI")).alias("fat_bmi"),
+            (pl.col("BIA-BIA_FFMI") / pl.col("BIA-BIA_Fat")).alias("ffmi_fat"),
+            (pl.col("BIA-BIA_FMI") / pl.col("BIA-BIA_Fat")).alias("fmi_fat"),
+            (pl.col("BIA-BIA_LST") / pl.col("BIA-BIA_TBW")).alias("lst_tbw"),
+            (pl.col("BIA-BIA_Fat") / pl.col("BIA-BIA_BMR")).alias("bfp_bmr"),
+            (pl.col("BIA-BIA_Fat") / pl.col("BIA-BIA_DEE")).alias("fat_dee"),
+            (pl.col("BIA-BIA_BMR") / pl.col("Physical-Weight")).alias("bmr_weight"),
+            (pl.col("BIA-BIA_DEE") / pl.col("Physical-Weight")).alias("dee_weight"),
+            (pl.col("BIA-BIA_SMM") / pl.col("Physical-Height")).alias("smm_height"),
+            (pl.col("BIA-BIA_SMM") / pl.col("BIA-BIA_Fat")).alias("smm_fat"),
+            (pl.col("BIA-BIA_TBW") / pl.col("Physical-Weight")).alias("tbw_weight"),
+            (pl.col("BIA-BIA_ICW") / pl.col("BIA-BIA_TBW")).alias("icw_tbw")
+        )
+    )
+    features_cols = [
+        "Age_BMI", "Age_internet_hoursday", "BMI_internet_hoursday", 
+        "fat_bmi", "ffmi_fat", "fmi_fat", "lst_tbw", "bfp_bmr", "fat_dee", "bmr_weight", "dee_weight",
+        "smm_height", "smm_fat", "tbw_weight", "icw_tbw",
+    ]
+    return features.select(features_cols)
+
+
 def normalized(df, norm_col, target_col, prefix):
     for col in target_col:
         median = df.group_by(norm_col).agg(pl.col(col).median().alias(f"median_{col}"))
@@ -47,37 +78,9 @@ def build_feature(df):
     ]
     age_sex_norm_features = normalized(df, "age-sex", age_sex_norm_cols, "age-sex")
 
-    # Interaction
-    df = (
-        df
-        .with_columns(
-            (pl.col("Basic_Demos-Age") * pl.col("Physical-BMI")).alias("Age_BMI"),
-            (pl.col("Basic_Demos-Age") * pl.col("PreInt_EduHx-computerinternet_hoursday")).alias("Age_internet_hoursday"),
-            (pl.col("Physical-BMI") * pl.col("PreInt_EduHx-computerinternet_hoursday")).alias("BMI_internet_hoursday"),
-        )
-        .with_columns(
-            (pl.col("BIA-BIA_Fat") / pl.col("BIA-BIA_BMI")).alias("fat_bmi"),
-            (pl.col("BIA-BIA_FFMI") / pl.col("BIA-BIA_Fat")).alias("ffmi_fat"),
-            (pl.col("BIA-BIA_FMI") / pl.col("BIA-BIA_Fat")).alias("fmi_fat"),
-            (pl.col("BIA-BIA_LST") / pl.col("BIA-BIA_TBW")).alias("lst_tbw"),
-            (pl.col("BIA-BIA_Fat") / pl.col("BIA-BIA_BMR")).alias("bfp_bmr"),
-            (pl.col("BIA-BIA_Fat") / pl.col("BIA-BIA_DEE")).alias("fat_dee"),
-            (pl.col("BIA-BIA_BMR") / pl.col("Physical-Weight")).alias("bmr_weight"),
-            (pl.col("BIA-BIA_DEE") / pl.col("Physical-Weight")).alias("dee_weight"),
-            (pl.col("BIA-BIA_SMM") / pl.col("Physical-Height")).alias("smm_height"),
-            (pl.col("BIA-BIA_SMM") / pl.col("BIA-BIA_Fat")).alias("smm_fat"),
-            (pl.col("BIA-BIA_TBW") / pl.col("Physical-Weight")).alias("tbw_weight"),
-            (pl.col("BIA-BIA_ICW") / pl.col("BIA-BIA_TBW")).alias("icw_tbw")
-        )
-    )
-
-    features_cols = [
-        "Age_BMI", "Age_internet_hoursday", "BMI_internet_hoursday",
-    ]
-
     features = pl.concat(
         [
-            df.select("icw_tbw"),
+            interaction(df),
             # age_norm_features,
             # sex_norm_features,
             # age_sex_norm_features,
