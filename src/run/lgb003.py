@@ -31,11 +31,10 @@ def qwk_obj(preds, dtrain):
     return grad, hess
 
 
-def train_kfold(features, targets, categorical_features, n_splits, model_params):
+def train_kfold(features, targets, categorical_features, n_splits, model_params, init_score):
     
     skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=0)
     folds = [(trn_idx, val_idx) for trn_idx, val_idx in skf.split(features, targets)]
-    init_score = 2.0
     eval_result = {}
     
     cv = lgb.cv(
@@ -72,8 +71,9 @@ def run_kfold(
     trn_features = features.iloc[:len(trn_targets)]
     tst_features = features.iloc[len(trn_targets):]
     
+    init_score = 2.0
     boosters, eval_result, oof_preds = train_kfold(
-        trn_features, trn_targets, categorical_features, n_splits, model_params
+        trn_features, trn_targets, categorical_features, n_splits, model_params, init_score
     )
 
     # save qwk score transition
@@ -93,4 +93,5 @@ def run_kfold(
     for i, booster in enumerate(boosters):
         tst_preds += booster.predict(tst_features) / n_splits
         booster.save_model(str(save_dir / f"booster.{i}.txt"))
+    tst_preds = (tst_preds + init_score).clip(0, 3).round()
     pd.DataFrame(data={"id": tst_id, "sii": tst_preds}).to_csv("/kaggle/working/submission.csv", index=False)
