@@ -48,7 +48,6 @@ model_params = {
     "num_leaves": 16,
     "feature_fraction": 0.5,
     "learning_rate": 0.01,
-    "seed": 1,
     "num_threads": 4,
     "verbosity": -1,
 }
@@ -61,6 +60,7 @@ run_kfold(
     trn_targets=trn_df.filter(pl.col("id").is_in(trn_id))["sii"].to_pandas(),
     categorical_features = cat_cols,
     n_splits=5,
+    n_seeds=3,
     save_dir=save_dir,
     model_params=model_params,
     trn_id=trn_id,
