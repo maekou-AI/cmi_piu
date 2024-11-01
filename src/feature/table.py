@@ -49,7 +49,7 @@ def normalized(df, norm_col, target_col, prefix):
 
 
 def build_feature(df):
-    # Make age-sex column
+    # Make age-sex col
     df = (
         df
         .with_columns(
@@ -61,29 +61,23 @@ def build_feature(df):
             .alias("age-sex")
         )
     )
-    # Normalized by age
+    # Normalize cols
     age_norm_cols = ["Physical-BMI", "Physical-HeartRate", "Physical-Systolic_BP"]
-    age_norm_features = normalized(df, "Basic_Demos-Age", age_norm_cols, "age")
-
-    # Normalized by sex
     sex_norm_cols = ["FGC-FGC_SRL", "FGC-FGC_SRR"]
-    sex_norm_features = normalized(df, "Basic_Demos-Sex", sex_norm_cols, "sex")
-
-    # Normalized by age-sex
     age_sex_norm_cols = [
         "Physical-Weight", "Physical-Waist_Circumference", "FGC-FGC_CU", "FGC-FGC_GSND", "FGC-FGC_GSD",
         "FGC-FGC_PU", "FGC-FGC_TL", "BIA-BIA_BMC", "BIA-BIA_BMR", "BIA-BIA_DEE", "BIA-BIA_ECW", "BIA-BIA_FFM",
         "BIA-BIA_FFMI", "BIA-BIA_FMI", "BIA-BIA_Fat", "BIA-BIA_ICW", "BIA-BIA_TBW", "BIA-BIA_LDM",
         "BIA-BIA_LST", "BIA-BIA_SMM"
     ]
-    age_sex_norm_features = normalized(df, "age-sex", age_sex_norm_cols, "age-sex")
 
     features = pl.concat(
         [
+            df.select("age-sex"),
+            normalized(df, "Basic_Demos-Age", age_norm_cols, "age"),
+            normalized(df, "Basic_Demos-Sex", sex_norm_cols, "sex"),
+            normalized(df, "age-sex", age_sex_norm_cols, "age-sex"),
             interaction(df),
-            # age_norm_features,
-            # sex_norm_features,
-            # age_sex_norm_features,
         ],
         how="horizontal"
     )
